@@ -8,16 +8,62 @@
  * Хранилища должны быть сохранены в массив vaultStore: Vault[]
  */
 import { IContract } from "../task_4";
-import { ISecureVaultRequisites } from "../task_3";
+import { ISecureVaultRequisites, Vault } from "../task_3";
 
 export class BankController{
+    private static instance: BankController;
+    private vaultStore: ISecureVaultRequisites[] = [];
 
-    public registerVault(): ISecureVaultRequisites{
+    public static getInstance(): BankController {
+        if (!this.instance) {
+          BankController.instance = new BankController();
+        }
 
+        return BankController.instance;
+  }
+
+  public registerVault(): ISecureVaultRequisites {
+    const val = new Vault();
+
+    this.vaultStore.push(val);
+
+    return val;
+  }
+
+  public proceedContract(contract: IContract) {
+    const sender = this.vaultStore.find((el) => el.id === contract.sender.id);
+    const receiver = this.vaultStore.find(
+      (el) => el.id === contract.receiver.id
+    );
+    contract.signAndTransfer();
+
+    try {
+      sender.withdraw(contract.value);
+    } catch (e) {
+      contract.rejectTransfer();
+
+      return;
     }
-
-    public proceedContract(contract: IContract) {
-
+    switch (contract.value.type) {
+        case "Material":
+          receiver.deposit(contract.value);
+          contract.closeTransfer();
+          break;
+        case "Crypto":
+          setTimeout(() => {
+            receiver.deposit(contract.value);
+            contract.closeTransfer();
+          }, 3000);
+          break;
+        case "Metal":
+          setTimeout(() => {
+            receiver.deposit(contract.value);
+            contract.closeTransfer();
+          }, 3000);
+          break;
+        default:
+          contract.rejectTransfer();
+      }
     }
-}
+  }
 

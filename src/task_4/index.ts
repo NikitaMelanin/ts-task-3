@@ -10,18 +10,50 @@
 import { Currency } from "../task_1";
 import { ISecureVaultRequisites } from "../task_3";
 
-export class SmartContract implements IContract{
+abstract class Contract implements IContract{
+    constructor() {
+        this.state = ContractState.pending;
+    }
 
+    closeTransfer(): void {
+        this.state = ContractState.close;
+    }
+
+    id: number;
+    receiver: ISecureVaultRequisites;
+
+    rejectTransfer(): void {
+        this.state = ContractState.rejected;
+    }
+
+    sender: ISecureVaultRequisites;
+
+    signAndTransfer(): void {
+        this.state = ContractState.transfer;
+    }
+
+    state: ContractState;
+    value: Currency;
+}
+export class SmartContract extends Contract{
+    signAndTransfer() {
+        this.state = ContractState.transfer;
+        setTimeout( () => {
+            this.closeTransfer();
+        }, 3000);
+    }
 }
 
-export class BankingContract implements IContract{
-
+export class BankingContract extends Contract{
 }
-
-export class LogisticContract implements IContract{
-
+export class LogisticContract extends Contract{
+    signAndTransfer() {
+        this.state = ContractState.transfer;
+        setTimeout( () => {
+            this.closeTransfer();
+        }, 6000);
+    }
 }
-
 
 export interface IContract{
     /**
